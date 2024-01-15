@@ -1,0 +1,7 @@
+modelname: tfidf_bert 
+lr: 0.001
+batch_size: 32
+epochs: 100
+patience: 5
+
+log_dir: logs
