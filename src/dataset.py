@@ -26,6 +26,45 @@ class dataset(Dataset):
     def __len__(self):
         return len(self.index_label)
     
+def batch_process(batch):
+    wlist, hlist = [], []
+    for img, text in batch:
+        imgSize = img.shape
+        # print(33, imgSize)
+        wlist.append(imgSize[1])
+        hlist.append(imgSize[2])
+    maxw = max(wlist)
+    maxh = max(hlist)
+    for i in range(len(batch)):
+        img, text = batch[i]
+        img = transforms.Resize((maxw, maxh))(img)
+        batch[i] = (img, text)
+    return batch
+
+
+def wash(texts):
+    # 去除停用词
+    stopwords = open('data/stopwords.txt').readlines()
+
+def bert_for_train():
+    path = 'data/train.txt'
+    with open(path, 'r') as f:
+        f.readline()
+        lines = f.readlines()
+    idxs = [line.split(',')[0] for line in lines]
+    texts = [open('data/data/'+idx+'.txt').readlines()[0] for idx in idxs]
+    texts = wash(texts)
+    from sklearn.feature_extraction.text import bertVectorizer
+    bertvectorizer = bertVectorizer()
+    text_feature = bertvectorizer.fit_transform(texts).toarray()
+    idx2bert = zip(idxs, text_feature)
+    print(text_feature.shape)
+    import pickle
+    with open('data/bertvectorizer.pkl', 'wb') as f:
+        pickle.dump(bertvectorizer, f)
+    return 
 if __name__ == "__main__":
-    train_dataset = dataset('train')
-    print(train_dataset[0])
+    wash(['a', 'b', 'c'])
+
+
+
