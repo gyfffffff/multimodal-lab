@@ -1,9 +1,9 @@
 modelname: bert_resnet
 lr: 0.001
-batch_size: 2
-epochs: 100
+batch_size: 64
+epochs: 15
 patience: 5
-
+device: cpu
 log_dir: logs
 
 use_text: 1

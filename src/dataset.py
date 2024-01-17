@@ -17,7 +17,8 @@ class dataset(Dataset):
     def __getitem__(self, index):
         data_index, label = self.index_label[index].split(",")[0], self.index_label[index].split(",")[1]
         img = Image.open("data/data/" + data_index + '.jpg')
-        text = open("data/data/" + data_index + '.txt').readlines()[0]
+        text = open("data/data/" + data_index + '.txt', 'r', encoding='utf-8', errors='ignore').read()
+        text = text.encode("ascii", "ignore").decode()
         # img 转tensor
         transf = transforms.Compose([transforms.ToTensor()])
         img = transf(img)
