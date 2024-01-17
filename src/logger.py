@@ -14,5 +14,5 @@ class logger:
         logging.info(info)
 
     def write_config(self, args):
-        for k, v in args.items():
+        for k, v in vars(args).items():
             logging.info(k+'\t'+str(v))

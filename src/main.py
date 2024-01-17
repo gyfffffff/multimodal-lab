@@ -7,8 +7,8 @@ def run(args):
     tvt = train_val_test(args)
     modelname = args.modelname.lower()
     if modelname == 'bert_resnet':
-        from model.bert_resnet import bert_resnet
-        model = bert_resnet(args)
+        from model.bert_resnet import BertResnet
+        model = BertResnet(args)
     tvt.train(model)
     tvt.test(model)
     print('done')
