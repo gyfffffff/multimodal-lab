@@ -4,3 +4,4 @@ res
 bert-base-uncased
 *.pth
 __pycache__
+result.txt

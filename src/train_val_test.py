@@ -7,8 +7,6 @@ from tqdm import tqdm
 class train_val_test:
     def __init__(self, args):
         self.args = args
-        self.train_loader = trainloader(args)
-        self.val_loader = valloader(args)
         self.loss = nn.CrossEntropyLoss()
         self.logger = logger(args.log_dir, args.version)
         self.train_loss_history = []
@@ -18,6 +16,8 @@ class train_val_test:
         self.patience = self.args.patience
 
     def train(self, model):
+        self.train_loader = trainloader(self.args)
+        self.val_loader = valloader(self.args)
         model.to(self.args.device)
         self.logger.write_config(self.args)
         for epoch in range(self.args.epochs):
@@ -52,7 +52,7 @@ class train_val_test:
 
     
     def val(self, model):
-        self.logger.write('    val...')
+        print('    val...')
         model.eval()
         acc = 0
         for batch in self.val_loader:
@@ -69,16 +69,18 @@ class train_val_test:
         else:
             self.patience -= 1
 
-    def test(self, model):
+    def test(self, model, state_dict_path):
         self.logger.write('\ntest start')
         self.test_loader = testloader(self.args)
-        model.eval()
+        model.load_state_dict(torch.load(state_dict_path))
         outputs = []
-        for batch in tqdm(self.test_loader, desc='test'):
-            text_ids, attention_masks, imgs, targets = batch[0].to(self.args.device), batch[1].to(self.args.device), batch[2].to(self.args.device), batch[3].to(self.args.device)
-            output = model(text_ids, attention_masks, imgs)
-            outputs.extend(output)
-        self.saveres(outputs)
+        with torch.no_grad():
+            model.eval()
+            for batch in tqdm(self.test_loader, desc='test'):
+                text_ids, attention_masks, imgs = batch[0].to(self.args.device), batch[1].to(self.args.device), batch[2].to(self.args.device)
+                output = model(text_ids, attention_masks, imgs)
+                outputs.extend(output)
+            self.saveres(outputs)
 
     def getacc(self, output, targets):
         pred = output.argmax(dim=1)

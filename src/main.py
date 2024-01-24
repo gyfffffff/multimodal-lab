@@ -19,4 +19,8 @@ if __name__ == "__main__":
     if modelname == 'bert_resnet':
         from model.bert_resnet import BertResnet
         model = BertResnet(args)
-    tvt.train(model)   # train, val, test
+    if args.train:
+        tvt.train(model)   # train, val
+    else:
+        tvt.test(model, f'res/{args.version}.pth')
+    

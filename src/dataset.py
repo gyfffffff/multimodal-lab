@@ -77,7 +77,7 @@ def valloader(args):
 
 def testloader(args):
     testset = dataset('test')
-    testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
+    testloader = DataLoader(testset, batch_size=4, shuffle=False)
     return testloader
 
 
