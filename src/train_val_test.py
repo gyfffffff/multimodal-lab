@@ -49,13 +49,7 @@ class train_val_test:
         self.logger.write('    train acc: {}'.format(acc))
         self.train_loss_history.append(loss.item())
         self.train_acc_history.append(acc)
-        if acc > self.best_acc:
-            self.best_acc = acc
-            torch.save(model.state_dict(), f'res/{self.args.version}.pth')
-            self.logger.write('    model saved: res/{}.pth'.format(self.args.version))
-            self.patience = self.args.patience
-        else:
-            self.patience -= 1
+
     
     def val(self, model):
         self.logger.write('    val...')
@@ -67,6 +61,13 @@ class train_val_test:
             acc += self.getacc(output, targets)/len(self.val_loader)
         self.logger.write('    val acc: {}'.format(acc))
         self.val_acc_history.append(acc)
+        if acc > self.best_acc:
+            self.best_acc = acc
+            torch.save(model.state_dict(), f'res/{self.args.version}.pth')
+            self.logger.write('    model saved: res/{}.pth'.format(self.args.version))
+            self.patience = self.args.patience
+        else:
+            self.patience -= 1
 
     def test(self, model):
         self.logger.write('\ntest start')
