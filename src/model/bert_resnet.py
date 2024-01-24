@@ -11,29 +11,37 @@ class BertResnet(nn.Module):
         if self.args.use_image:
             self.resnet = models.resnet18(pretrained=False)
             state_dict = torch.load('src/model/resnet18-5c106cde.pth')
-            self.resnet.load_state_dict(state_dict)  # 512维
-            self.resnet.fc = nn.Identity()
+            self.resnet.load_state_dict(state_dict)  # 1000维
+            self.img_fc = nn.Linear(1000, 128)
+
         if self.args.use_text:
             self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
             self.bert = BertModel.from_pretrained('bert-base-uncased')
-        self.fc = nn.Linear(512+768, 3)
-        self.sigmoid = nn.Sigmoid() 
+            self.text_fc = nn.Linear(768, 128)
         
-        
-    def forward(self, batch):
-        imgs, texts = batch  # imgs: [batchsize, 3, 224, 224], texts: list of str, labels: tensor[batchsize]
-        if self.args.use_image:
-            img_feature = self.resnet(imgs)  # [batchsize, 512]
-        if self.args.use_text:
-            text_feature_list = []
-            for text in texts:
-                inputs = self.tokenizer(text, return_tensors='pt')
-                outputs = self.bert(**inputs)
-                text_feature_list.append(outputs.last_hidden_state[:, 0, :])
-            text_features = torch.stack(text_feature_list).squeeze()
-        feature = torch.cat([img_feature, text_features], dim=1)
+        if self.args.use_image and self.args.use_text:
+            self.fusion = nn.Linear(128+128, 3)
 
-        output = self.fc(feature)
-        output = self.sigmoid(output)
+        self.relu = nn.ReLU()
+        
+        
+    def forward(self, text_ids, attention_masks, imgs):
+        if self.args.use_image:
+            img_feature = self.resnet(imgs)  
+            img_feature = self.img_fc(img_feature)  
+            img_feature = self.relu(img_feature)
+        if self.args.use_text:
+            text_feature = self.bert(text_ids, attention_mask=attention_masks).last_hidden_state[:, 0, :]  # [batchsize, 768]
+            text_feature = self.text_fc(text_feature)
+            text_feature = self.relu(text_feature)
+        
+        if self.args.use_image and self.args.use_text:
+            feature = torch.cat([img_feature, text_feature], dim=1)
+            output = self.fusion(feature)
+        elif self.args.use_image:
+            output = img_feature
+        elif self.args.use_text:
+            output = text_feature
+
         return output
 

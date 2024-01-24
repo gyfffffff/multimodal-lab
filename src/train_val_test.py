@@ -1,47 +1,53 @@
 from torch import nn
 from logger import logger
-from torch.utils.data import DataLoader
-from dataset import dataset, batch_process
+from dataset import trainloader, valloader, testloader
 import torch
-
+from tqdm import tqdm
 
 class train_val_test:
     def __init__(self, args):
         self.args = args
-        self.train_loader = DataLoader(dataset('train'), batch_size=args.batch_size, shuffle=True, collate_fn=batch_process)
-        self.val_loader = DataLoader(dataset('val'), batch_size=args.batch_size, shuffle=True, collate_fn=batch_process)
-        self.test_loader = DataLoader(dataset('test'), batch_size=args.batch_size, shuffle=False, collate_fn=batch_process)
+        self.train_loader = trainloader(args)
+        self.val_loader = valloader(args)
         self.loss = nn.CrossEntropyLoss()
         self.logger = logger(args.log_dir, args.version)
+        self.train_loss_history = []
         self.train_acc_history = []
         self.val_acc_history = []
         self.best_acc = -1
         self.patience = self.args.patience
+
     def train(self, model):
         model.to(self.args.device)
         self.logger.write_config(self.args)
         for epoch in range(self.args.epochs):
             self.logger.write('Epoch: {}'.format(epoch+1))
-            self.train_epoch(model)
+            self.train_epoch(model, epoch)
             self.val(model)
+            if self.patience == 0:
+                self.logger.write('    early stop.')
+                break
         self.plot()
+        self.test(model)
 
-    def train_epoch(self, model):
+    def train_epoch(self, model, epoch):
         optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr)
         model.train()
+        # total_loss = 0
         acc = 0
-        for i, batch in enumerate(self.train_loader):
-            batch = batch.to(self.args.device)
-            targets = batch[2]
-            output = model(batch[:2])  # output: [batchsize, 3]
+        for batch in tqdm(self.train_loader, desc=f'train epoch {epoch+1}'):
+            # batch: [tensor[batchsize, 150], tensor[batchsize, 150], tensor[batchsize, 3, 224, 224], tensor[batchsize]]
+            text_ids, attention_masks, imgs, targets = batch[0].to(self.args.device), batch[1].to(self.args.device), batch[2].to(self.args.device), batch[3].to(self.args.device)
+            output = model(text_ids, attention_masks, imgs)  # output: [batchsize, 3]
             loss = self.loss(output, targets)  
+            # total_loss += loss.item()
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
             acc += self.getacc(output, targets)/len(self.train_loader)
-            if i % 50 == 0:
-                self.logger.write('    batch: {}, loss: {}'.format(i, loss.item()))
+        self.logger.write('    train loss: {}'.format(loss.item()))
         self.logger.write('    train acc: {}'.format(acc))
+        self.train_loss_history.append(loss.item())
         self.train_acc_history.append(acc)
         if acc > self.best_acc:
             self.best_acc = acc
@@ -50,30 +56,28 @@ class train_val_test:
             self.patience = self.args.patience
         else:
             self.patience -= 1
-        if self.patience == 0:
-            self.logger.write('    early stop.')
-            raise KeyboardInterrupt
     
     def val(self, model):
+        self.logger.write('    val...')
         model.eval()
         acc = 0
         for batch in self.val_loader:
-            batch = batch.to(self.args.device)
-            targets = batch[2]
-            output = model(batch[:2])
+            text_ids, attention_masks, imgs, targets = batch[0].to(self.args.device), batch[1].to(self.args.device), batch[2].to(self.args.device), batch[3].to(self.args.device)
+            output = model(text_ids, attention_masks, imgs)
             acc += self.getacc(output, targets)/len(self.val_loader)
         self.logger.write('    val acc: {}'.format(acc))
         self.val_acc_history.append(acc)
 
     def test(self, model):
-        model.to(self.args.device)
+        self.logger.write('\ntest start')
+        self.test_loader = testloader(self.args)
         model.eval()
         outputs = []
-        for batch in self.test_loader:
-            output = model(batch[:2])
+        for batch in tqdm(self.test_loader, desc='test'):
+            text_ids, attention_masks, imgs, targets = batch[0].to(self.args.device), batch[1].to(self.args.device), batch[2].to(self.args.device), batch[3].to(self.args.device)
+            output = model(text_ids, attention_masks, imgs)
             outputs.extend(output)
         self.saveres(outputs)
-        self.logger.write('tested')
 
     def getacc(self, output, targets):
         pred = output.argmax(dim=1)
@@ -91,8 +95,11 @@ class train_val_test:
 
     def saveres(self, outputs):
         import pandas as pd
-        pred = outputs.argmax(dim=1)
+        pred = [output.argmax() for output in outputs]
+        label2idx = {'positive': 0, 'neutral': 1, 'negative': 2}
+        idx2label = {v: k for k, v in label2idx.items()}
+        pred = [idx2label[i.item()] for i in pred]
         pd = pd.read_csv('data/test_without_label.txt')
         pd['tag'] = pred
-        pd.to_csv(f'result.csv', index=False)
+        pd.to_csv(f'result.txt', index=False)
         self.logger.write(f'res saved.')
