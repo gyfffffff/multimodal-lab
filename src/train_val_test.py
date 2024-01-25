@@ -23,7 +23,8 @@ class train_val_test:
         for epoch in range(self.args.epochs):
             self.logger.write('Epoch: {}'.format(epoch+1))
             self.train_epoch(model, epoch)
-            self.val(model)
+            if not self.args.train_small:
+                self.val(model)
             if self.patience == 0:
                 self.logger.write('    early stop.')
                 break
