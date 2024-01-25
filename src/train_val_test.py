@@ -105,5 +105,5 @@ class train_val_test:
         pred = [idx2label[i.item()] for i in pred]
         pd = pd.read_csv('data/test_without_label.txt')
         pd['tag'] = pred
-        pd.to_csv(f'result.txt', index=False)
+        pd.to_csv(f'submit.txt', index=False)
         self.logger.write(f'res saved.')

@@ -4,5 +4,6 @@ res
 bert-base-uncased
 *.pth
 __pycache__
-result.txt
+submit.txt
 *.pptx
+*.zip
