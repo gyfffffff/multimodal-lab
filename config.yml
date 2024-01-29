@@ -1,4 +1,4 @@
-modelname: bert_resnet_weight
+modelname: roberta_swin_att
 lr: 0.000001
 lr_finetune: 0.00001
 lr_downstream: 0.002

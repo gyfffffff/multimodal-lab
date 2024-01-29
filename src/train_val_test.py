@@ -1,6 +1,6 @@
 from torch import nn
 from logger import logger
-from dataset import trainloader, valloader, testloader
+from new_dataset import trainloader, valloader, testloader
 import torch
 from tqdm import tqdm
 
@@ -32,32 +32,32 @@ class train_val_test:
         self.test(model)
 
     def train_epoch(self, model, epoch):
-        optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr)
-        # if self.args.modelname.lower() != 'roberta_swin_att':
-        #     optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr)
-        # else:
-        #     optimizer = torch.optim.AdamW([
-        #         {
-        #             'params': model.text_embedding.roberta.parameters(),
-        #             'lr': self.args.lr_finetune
-        #         },
-        #         {
-        #             'params': model.img_embedding.swin.parameters(),
-        #             'lr': self.args.lr_finetune
-        #         },
-        #         {
-        #             'params': model.text_embedding.aligner.parameters(),
-        #             'lr': self.args.lr_downstream
-        #         },
-        #         {
-        #             'params': model.img_embedding.aligner.parameters(),
-        #             'lr': self.args.lr_downstream
-        #         },
-        #         {
-        #             'params': model.fuser.parameters(),
-        #             'lr': self.args.lr_downstream
-        #         }
-        #     ])
+        # optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr)
+        if self.args.modelname.lower() != 'new':
+            optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr)
+        else:
+            optimizer = torch.optim.AdamW([
+                {
+                    'params': model.text_embedding.roberta.parameters(),
+                    'lr': self.args.lr_finetune
+                },
+                {
+                    'params': model.img_embedding.swin.parameters(),
+                    'lr': self.args.lr_finetune
+                },
+                {
+                    'params': model.text_embedding.aligner.parameters(),
+                    'lr': self.args.lr_downstream
+                },
+                {
+                    'params': model.img_embedding.aligner.parameters(),
+                    'lr': self.args.lr_downstream
+                },
+                {
+                    'params': model.fuser.parameters(),
+                    'lr': self.args.lr_downstream
+                }
+            ])
         model.train()
         # total_loss = 0
         acc = 0

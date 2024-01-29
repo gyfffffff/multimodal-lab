@@ -22,6 +22,9 @@ if __name__ == "__main__":
     elif modelname == 'bert_resnet_weight':
         from model.bert_resnet_weight import BertResnet
         model = BertResnet(args)
+    elif modelname == 'roberta_swin_att':
+        from model.roberta_swin_att import roberta_swin_att
+        model = roberta_swin_att('xlm-roberta-base', 'microsoft/swin-base-patch4-window7-224')
     if args.train:
         tvt.train(model)   # train, val
     else:
