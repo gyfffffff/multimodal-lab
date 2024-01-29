@@ -19,6 +19,9 @@ if __name__ == "__main__":
     if modelname == 'bert_resnet':
         from model.bert_resnet import BertResnet
         model = BertResnet(args)
+    elif modelname == 'bert_resnet_weight':
+        from model.bert_resnet_weight import BertResnet
+        model = BertResnet(args)
     if args.train:
         tvt.train(model)   # train, val
     else:
