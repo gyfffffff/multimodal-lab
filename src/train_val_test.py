@@ -33,7 +33,7 @@ class train_val_test:
 
     def train_epoch(self, model, epoch):
         # optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr)
-        if self.args.modelname.lower() != 'new':
+        if self.args.modelname.lower() != 'roberta_swin_att':
             optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr)
         else:
             optimizer = torch.optim.AdamW([

@@ -1,8 +1,8 @@
-modelname: roberta_swin_att
+modelname: bert_resnet_concat
 lr: 0.000001
 lr_finetune: 0.00001
 lr_downstream: 0.002
-batch_size: 12
+batch_size: 16
 epochs: 100
 patience: 4
 device: cpu

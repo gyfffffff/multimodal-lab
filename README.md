@@ -34,35 +34,34 @@ pip install -r requirements.txt
 
 ```python
     multimodal-lab/
-    ├─config.yml   # 参数配置文件，在这里修改运行参数
+    ├─config.yml        # 参数配置文件，在这里修改运行参数
     ├─data/
-    │ ├─count_tag.py   # 统计数据集类别占比
-    │ ├─data/         # 存放所有数据
-    │ │  ├─1.jpg      # 图像模态数据
-    │ │  ├─1.txt      # 文本模态数据
+    │ ├─data/           # 存放所有数据
+    │ │  ├─1.jpg        # 图像模态数据
+    │ │  ├─1.txt        # 文本模态数据
     │ │  └─....jpg
-    │ ├─test_without_label.txt  # 测试集
-    │ ├─train.txt              # 训练集
-    │ ├─train_small.txt        # 小训练集（训练集前50条数据）
-    │ ├─val.txt               # 验证集
-    │ └─val_small.txt           # 小验证集
-    ├─logs/                # 存放实验报告中提到的模型训练日志
-    ├─res/              # 存放实验报告中提到的模型训练结果折线图
+    │ ├─test_without_label.txt     # 测试集
+    │ ├─train.txt                  # 训练集
+    │ ├─train_small.txt            # 小训练集（训练集前50条数据）
+    │ ├─val.txt                    # 验证集
+    │ └─val_small.txt              # 小验证集
+    ├─logs/              # 存放实验报告中提到的模型训练日志
+    ├─res/               # 存放实验报告中提到的模型训练结果折线图，以及.pth
     ├─src/
     │ ├─dataset.py       # 数据预处理
     │ ├─logger.py        # logging包装类，用于记录日志
     │ ├─main.py          # 运行入口
     │ ├─model/           # 存放不同的模型实现
-    │ │  ├─bert_resnet_weight.py  # bert和resnet提取文本和图片特征，并加权融合
-    │ │  ├─bert_resnet_concat.py  # bert和resnet提取文本和图片特征，并拼接融合
-    │ │  └─roberta_swin_att.py   # roberta和swin提取文本和图片特征，并使用注意力机制融合
-    │ └─train_val_test.py  # 训练，验证，测试的过程
-    └─submit.txt  # 预测结果文件
+    │ │  ├─bert_resnet_weight.py   # bert和resnet提取文本和图片特征，并加权融合
+    │ │  ├─bert_resnet_concat.py   # bert和resnet提取文本和图片特征，并拼接融合
+    │ │  └─roberta_swin_att.py     # roberta和swin提取文本和图片特征，并使用注意力机制融合
+    │ └─train_val_test.py       # 训练，验证，测试的过程
+    └─submit.txt         # 预测结果文件
 ```
 
 
-## 运行
-1. src/model下实现的任意一个模型都可以运行。例如，你可以通过如下脚本运行bert_resnet_concat:
+## 运行流程
+1. src/model下实现的任意一个模型都可以训练和验证。例如，你可以通过如下脚本运行bert_resnet_concat:
 ```python
 python src/main.py --modelname bert_resnet_concat --resnet 18
 ```
@@ -93,6 +92,8 @@ python src/main.py --modelname bert_resnet_weight --resnet 50 --train_small 1
 
 ## 复现
 如要复现以上结果，请运行experiment.sh中的命令。
+
+如要输出结果，请使用 `python src/main.py --modelname bert_resnet_concat --version bert_resnet50_concat --resnet 50 --train 0`
 
 ## 引用
 
