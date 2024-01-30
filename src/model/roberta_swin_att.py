@@ -1,6 +1,5 @@
 from transformers import XLMRobertaModel, SwinModel
 from torch import nn
-from model.roberta import RobertaEncoder
 import torch
 import math
 

@@ -1,6 +1,6 @@
 from torch import nn
 from logger import logger
-from new_dataset import trainloader, valloader, testloader
+from dataset import trainloader, valloader, testloader
 import torch
 from tqdm import tqdm
 

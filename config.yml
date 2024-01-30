@@ -13,5 +13,5 @@ resnet: 50
 use_text: 1
 use_image: 1
 
-train_small: 1
+train_small: 0
 train: 1

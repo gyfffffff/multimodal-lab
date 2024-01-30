@@ -6,7 +6,7 @@ from transformers import BertTokenizer
 from tqdm import tqdm
 
 class dataset(Dataset):
-    def __init__(self, phase):
+    def __init__(self, phase, modelname):
         if phase == 'train':
             self.index_label = "data/train.txt"
         elif phase == 'val':
@@ -39,18 +39,26 @@ class dataset(Dataset):
                 self.attention_mask_list.append(attention_mask)
         
         self.img_list = []
-        for f in tqdm(self.img_files, desc=f"{phase} img transform"):
-            img = Image.open("data/data/" + f)
-            transform = transforms.Compose([
-                transforms.Resize((256, 256)),  # 防止有些图片太小
-                transforms.RandomCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                      std=[0.229, 0.224, 0.225]),
-            ])
-            img = transform(img)
-            self.img_list.append(img)
-                
+        if modelname == 'roberta_swin_att':     
+            from transformers import AutoFeatureExtractor
+            feature_extractor = AutoFeatureExtractor.from_pretrained("microsoft/swin-base-patch4-window7-224")
+            for f in tqdm(self.img_files, desc=f"{phase} img transform"):
+                img = Image.open("data/data/" + f)
+                img = feature_extractor(images=img, return_tensors="pt")
+                self.img_list.append(img['pixel_values'][0])  # [3, 224, 224]
+        else:
+            for f in tqdm(self.img_files, desc=f"{phase} img transform"):
+                img = Image.open("data/data/" + f)
+                transform = transforms.Compose([
+                    transforms.Resize((256, 256)),  # 防止有些图片太小
+                    transforms.RandomCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                        std=[0.229, 0.224, 0.225]),
+                ])
+                img = transform(img)
+                self.img_list.append(img)
+
         
     def __getitem__(self, index):
         data = (self.text_ids_list[index], self.attention_mask_list[index], self.img_list[index], self.labels[index])
@@ -61,22 +69,22 @@ class dataset(Dataset):
     
 def trainloader(args):
     if args.train_small:
-        trainset = dataset('train_small')
+        trainset = dataset('train_small', args.modelname)
     else:
-        trainset = dataset('train')
+        trainset = dataset('train', args.modelname)
     trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
     return trainloader
 
 def valloader(args):
     if args.train_small:
-        valset = dataset('val_small')
+        valset = dataset('val_small', args.modelname)
     else:
-        valset = dataset('val')
+        valset = dataset('val', args.modelname)
     valloader = DataLoader(valset, batch_size=args.batch_size, shuffle=False)
     return valloader
 
 def testloader(args):
-    testset = dataset('test')
+    testset = dataset('test', args.modelname)
     testloader = DataLoader(testset, batch_size=4, shuffle=False)
     return testloader
 

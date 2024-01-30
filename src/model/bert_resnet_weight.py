@@ -10,8 +10,12 @@ class BertResnet(nn.Module):
         super(BertResnet, self).__init__()
         self.args = args
         if self.args.use_image:
-            self.resnet = models.resnet18(pretrained=False)
-            state_dict = torch.load('src/model/resnet18-5c106cde.pth')
+            if self.args.resnet == 18:
+                self.resnet = models.resnet18(pretrained=False)
+                state_dict = torch.load('src/model/resnet18-5c106cde.pth')
+            elif self.args.resnet == 50:
+                self.resnet = models.resnet50(pretrained=False)
+                state_dict = torch.load('src/model/resnet50-19c8e357.pth')
             self.resnet.load_state_dict(state_dict)  # 1000维
             self.img_fc = nn.Linear(1000, 128)
 
@@ -30,7 +34,7 @@ class BertResnet(nn.Module):
         self.imgW = nn.Linear(128, 1)
         self.textW = nn.Linear(128, 1)
 
-    def attention(self, img_feature, text_feature):
+    def weight(self, img_feature, text_feature):
         img_weights = self.imgW(img_feature)  # [batchsize, 1]
         text_weights = self.textW(text_feature)
         feature = img_weights * img_feature + text_weights * text_feature
@@ -47,9 +51,14 @@ class BertResnet(nn.Module):
             text_feature = self.text_fc(text_feature)  # [batchsize, 128]
             # text_feature = self.relu(text_feature)     # [batchsize, 128]
         
-          
-        output = self.attention(img_feature, text_feature)
-        output = self.relu(output)
-        output = self.classifier(output)
+        if self.args.use_image and self.args.use_text:
+            feature = self.weight(img_feature, text_feature)
+            output = self.classifier(feature)
+        elif self.args.use_image:
+            img_feature = self.classifier(img_feature)
+            output = img_feature
+        elif self.args.use_text:
+            text_feature = self.classifier(text_feature)
+            output = text_feature
         return output
 

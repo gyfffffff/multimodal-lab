@@ -16,8 +16,8 @@ if __name__ == "__main__":
     
     tvt = train_val_test(args)
     modelname = args.modelname.lower()
-    if modelname == 'bert_resnet':
-        from model.bert_resnet import BertResnet
+    if modelname == 'bert_resnet_concat':
+        from model.bert_resnet_concat import BertResnet
         model = BertResnet(args)
     elif modelname == 'bert_resnet_weight':
         from model.bert_resnet_weight import BertResnet
