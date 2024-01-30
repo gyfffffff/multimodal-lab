@@ -1,6 +1,3 @@
-data
-logs
-res
 bert-base-uncased
 *.pth
 __pycache__
